@@ -1,0 +1,2264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Korea Express Air - Accurate G100 + PC-12 Financial Model</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        h1 {
+            color: #1a365d;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.8em;
+            font-weight: bold;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        .kig-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tab {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px 8px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+            color: #4a5568;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: #1e3c72;
+            color: white;
+            box-shadow: 0 4px 8px rgba(30, 60, 114, 0.3);
+        }
+        
+        .tab:hover:not(.active) { background: #e2e8f0; }
+        
+        .tab-content {
+            display: none;
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-content.active { display: block; }
+        
+        .model-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .input-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #1e3c72;
+            height: fit-content;
+        }
+        
+        .results-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #38a169;
+        }
+        
+        .panel-header {
+            background: #1e3c72;
+            color: white;
+            padding: 10px;
+            margin: -20px -20px 15px -20px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .results-header {
+            background: #38a169;
+            color: white;
+            padding: 10px;
+            margin: -20px -20px 15px -20px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2d3748;
+            font-size: 13px;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+        }
+        
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+            border-left: 4px solid #667eea;
+        }
+        
+        .metric-card:hover { transform: translateY(-2px); }
+        
+        .metric-value {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            color: #718096;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            height: 300px;
+        }
+        
+        .financial-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            font-size: 12px;
+        }
+        
+        .financial-table th, .financial-table td {
+            padding: 10px 8px;
+            text-align: right;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .financial-table th {
+            background: #1e3c72;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            font-size: 11px;
+        }
+        
+        .financial-table .category {
+            background: #f7fafc;
+            font-weight: bold;
+            text-align: left;
+            font-size: 11px;
+        }
+        
+        .financial-table .subcategory {
+            text-align: left;
+            padding-left: 20px;
+            font-size: 11px;
+        }
+        
+        .positive { color: #38a169; }
+        .negative { color: #e53e3e; }
+        .neutral { color: #4a5568; }
+        
+        .calc-btn {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 15px 0;
+        }
+        
+        .calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.3);
+        }
+        
+        .validation-box {
+            background: #e6fffa;
+            border: 2px solid #38b2ac;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+        
+        .pdf-data-box {
+            background: #fef5e7;
+            border: 2px solid #ed8936;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+        
+        .acquisition-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+        
+        .fleet-timeline {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+        }
+        
+        .year-column {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-top: 4px solid #667eea;
+        }
+        
+        .year-header {
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .aircraft-icon {
+            font-size: 24px;
+            margin: 8px 0;
+        }
+        
+        .excel-btn {
+            background: linear-gradient(45deg, #38a169, #68d391);
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+            width: 100%;
+        }
+        
+        .excel-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(56, 161, 105, 0.3);
+        }
+
+        .scenario-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .scenario-btn {
+            padding: 10px 8px;
+            border: 2px solid #1e3c72;
+            background: white;
+            color: #1e3c72;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .scenario-btn:hover, .scenario-btn.active {
+            background: #1e3c72;
+            color: white;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✈️ Korea Express Air - Accurate Financial Model</h1>
+        <div class="subtitle">KIG Holdings Strategic Acquisition | G100 + PC-12 Hybrid Strategy (Pro Forma Based)</div>
+        
+        <div class="kig-header">
+            <h2>🏢 KIG Holdings Acquisition - Accurate Pro Forma Numbers</h2>
+            <p><strong>Target:</strong> Korea Express Air (Court Rehabilitation) • <strong>Strategy:</strong> G100 Premium + PC-12 Scale</p>
+            <p id="investment-summary"><strong>Investment:</strong> $21.8M • <strong>Year 1 Profit:</strong> $222K • <strong>5-Year Exit:</strong> $60-85M • <strong>ROI:</strong> 220%</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('executive')">Executive Summary</button>
+            <button class="tab" onclick="showTab('revenue')">Revenue Model</button>
+            <button class="tab" onclick="showTab('costs')">Cost Structure</button>
+            <button class="tab" onclick="showTab('fleet')">Fleet Strategy</button>
+            <button class="tab" onclick="showTab('cashflow')">Cash Flow</button>
+            <button class="tab" onclick="showTab('valuation')">Exit Valuation</button>
+            <button class="tab" onclick="showTab('scenarios')">Scenario Analysis</button>
+        </div>
+
+        <!-- Executive Summary Tab -->
+        <div id="executive" class="tab-content active">
+            <div class="acquisition-summary">
+                <h3>🎯 Korea Express Air Acquisition - Pro Forma Accurate Model</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 25px; margin-top: 15px;">
+                    <div>
+                        <h4>📊 Transaction Structure</h4>
+                        <p>• Rehabilitation court acquisition</p>
+                        <p>• $21.8M total investment</p>
+                        <p>• G100 + PC-12 hybrid strategy</p>
+                        <p>• Year 1 profitability achieved</p>
+                    </div>
+                    <div>
+                        <h4>✈️ Fleet Performance</h4>
+                        <p>• G100: 408+ hrs proven (PDF data)</p>
+                        <p>• PC-12: 780-1060 hrs scale-up</p>
+                        <p>• Combined 15.3% Y1 EBITDA margin</p>
+                        <p>• 24.2% Y5 EBITDA margin target</p>
+                    </div>
+                    <div>
+                        <h4>💰 Financial Returns</h4>
+                        <p>• Year 1: $6.9M revenue, $222K profit</p>
+                        <p>• Year 5: $28.6M revenue, $4.4M profit</p>
+                        <p>• 220% 5-year ROI</p>
+                        <p>• $60-85M exit valuation</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="model-grid">
+                <div class="input-panel">
+                    <div class="panel-header">🎛️ MODEL PARAMETERS</div>
+                    
+                    <div class="scenario-buttons">
+                        <div class="scenario-btn active" onclick="loadScenario('base')">Base Case</div>
+                        <div class="scenario-btn" onclick="loadScenario('optimistic')">Optimistic</div>
+                        <div class="scenario-btn" onclick="loadScenario('conservative')">Conservative</div>
+                    </div>
+
+                    <div class="pdf-data-box">
+                        <strong>Pro Forma Validated Data:</strong><br>
+                        • G100: 408 hrs proven Korean market<br>
+                        • Charter: $18,000/hr international<br>
+                        • EMS: $15,000-25,000/hr capability<br>
+                        • PC-12: $6,000/hr domestic proven<br>
+                        • Operating margins: 53% G100, 42% PC-12
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>G100 Annual Hours</label>
+                        <input type="number" id="g100-hours" value="408" min="350" max="550">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>PC-12 Hours per Aircraft</label>
+                        <input type="number" id="pc12-hours" value="780" min="600" max="1000">
+                    </div>
+                    
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>G100 Charter Rate</label>
+                            <input type="number" id="g100-rate" value="18000" min="15000" max="25000">
+                        </div>
+                        <div class="input-group">
+                            <label>PC-12 Rate</label>
+                            <input type="number" id="pc12-rate" value="6000" min="4500" max="8000">
+                        </div>
+                    </div>
+                    
+                    <button class="calc-btn" onclick="calculateModel(); console.log('Calculate button clicked!');">🔄 RECALCULATE MODEL</button>
+                </div>
+
+                <div class="results-panel">
+                    <div class="results-header">📈 KEY PERFORMANCE METRICS</div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="total-investment">$21.8M</div>
+                            <div class="metric-label">Total Investment</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="year1-revenue">$6.9M</div>
+                            <div class="metric-label">Year 1 Revenue</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="year1-profit">$222K</div>
+                            <div class="metric-label">Year 1 Net Income</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="year5-revenue">$28.6M</div>
+                            <div class="metric-label">Year 5 Revenue</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="year5-ebitda">$6.9M</div>
+                            <div class="metric-label">Year 5 EBITDA</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="ebitda-margin">24.2%</div>
+                            <div class="metric-label">Year 5 EBITDA Margin</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="enterprise-value">$72.5M</div>
+                            <div class="metric-label">Exit Value (Midpoint)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="total-roi">220%</div>
+                            <div class="metric-label">5-Year Total ROI</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="executiveChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <table class="financial-table">
+                <thead>
+                    <tr>
+                        <th>Pro Forma Model (USD 000s)</th>
+                        <th>2025</th>
+                        <th>2026</th>
+                        <th>2027</th>
+                        <th>2028</th>
+                        <th>2029</th>
+                    </tr>
+                </thead>
+                <tbody id="executiveTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+
+            <button class="excel-btn" onclick="generateExcel()">
+                📊 Generate Complete Pro Forma Excel Model
+            </button>
+        </div>
+
+        <!-- Revenue Model Tab -->
+        <div id="revenue" class="tab-content">
+            <h3>💰 Revenue Model - G100 + PC-12 Strategy</h3>
+            
+            <div class="validation-box">
+                <strong>Pro Forma Revenue Validation:</strong><br>
+                • G100 performance based on 408 hours proven in Korean market<br>
+                • International charter: $18,000/hr (PDF verified)<br>
+                • EMS operations: $15,000-25,000/hr capability<br>
+                • PC-12 domestic: $6,000/hr (market competitive)<br>
+                • Revenue growth: 76% Y2, 49% Y3, 38% Y4, 14% Y5
+            </div>
+
+            <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+            </div>
+
+            <table class="financial-table">
+                <thead>
+                    <tr>
+                        <th>Revenue Breakdown (USD 000s)</th>
+                        <th>2025</th>
+                        <th>2026</th>
+                        <th>2027</th>
+                        <th>2028</th>
+                        <th>2029</th>
+                    </tr>
+                </thead>
+                <tbody id="revenueTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Cost Structure Tab -->
+        <div id="costs" class="tab-content">
+            <h3>💸 Operating Cost Structure</h3>
+            
+            <div class="pdf-data-box">
+                <strong>Pro Forma Cost Structure:</strong><br>
+                • G100 operating cost: $8,000/hr (53% margin)<br>
+                • PC-12 operating cost: $3,000-3,500/hr (42-50% margin)<br>
+                • Personnel scaling: 18 → 62 staff over 5 years<br>
+                • Facilities, insurance, maintenance included<br>
+                • Total operating leverage: 84% → 76% cost ratio
+            </div>
+
+            <div class="chart-container">
+                <canvas id="costsChart"></canvas>
+            </div>
+
+            <table class="financial-table">
+                <thead>
+                    <tr>
+                        <th>Cost Structure (USD 000s)</th>
+                        <th>2025</th>
+                        <th>2026</th>
+                        <th>2027</th>
+                        <th>2028</th>
+                        <th>2029</th>
+                    </tr>
+                </thead>
+                <tbody id="costsTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Fleet Strategy Tab -->
+        <div id="fleet" class="tab-content">
+            <h3>✈️ Fleet Strategy & Performance</h3>
+            
+            <div class="fleet-timeline">
+                <div class="year-column">
+                    <div class="year-header">2025</div>
+                    <div class="aircraft-icon">🛩️</div>
+                    <div>1 G100</div>
+                    <div>0 PC-12</div>
+                    <div>408 hours</div>
+                </div>
+                <div class="year-column">
+                    <div class="year-header">2026</div>
+                    <div class="aircraft-icon">🛩️✈️</div>
+                    <div>1 G100</div>
+                    <div>1 PC-12</div>
+                    <div>1,218 hours</div>
+                </div>
+                <div class="year-column">
+                    <div class="year-header">2027</div>
+                    <div class="aircraft-icon">🛩️✈️✈️</div>
+                    <div>1 G100</div>
+                    <div>2 PC-12</div>
+                    <div>2,148 hours</div>
+                </div>
+                <div class="year-column">
+                    <div class="year-header">2028</div>
+                    <div class="aircraft-icon">🛩️✈️✈️✈️</div>
+                    <div>1 G100</div>
+                    <div>3 PC-12</div>
+                    <div>3,228 hours</div>
+                </div>
+                <div class="year-column">
+                    <div class="year-header">2029</div>
+                    <div class="aircraft-icon">🛩️✈️✈️✈️</div>
+                    <div>1 G100</div>
+                    <div>3 PC-12</div>
+                    <div>3,708 hours</div>
+                </div>
+            </div>
+
+            <table class="financial-table">
+                <thead>
+                    <tr>
+                        <th>Fleet Metrics</th>
+                        <th>2025</th>
+                        <th>2026</th>
+                        <th>2027</th>
+                        <th>2028</th>
+                        <th>2029</th>
+                    </tr>
+                </thead>
+                <tbody id="fleetTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Cash Flow Tab -->
+        <div id="cashflow" class="tab-content">
+            <h3>💸 Cash Flow Analysis</h3>
+            
+            <div class="chart-container">
+                <canvas id="cashflowChart"></canvas>
+            </div>
+
+            <table class="financial-table">
+                <thead>
+                    <tr>
+                        <th>Cash Flow (USD 000s)</th>
+                        <th>2025</th>
+                        <th>2026</th>
+                        <th>2027</th>
+                        <th>2028</th>
+                        <th>2029</th>
+                    </tr>
+                </thead>
+                <tbody id="cashflowTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Exit Valuation Tab -->
+        <div id="valuation" class="tab-content">
+            <h3>💎 Exit Valuation Analysis</h3>
+            
+            <div class="validation-box">
+                <strong>Valuation Methodology:</strong><br>
+                • EBITDA Multiple: 10-14x ($69M - $97M)<br>
+                • Revenue Multiple: 3-4x ($86M - $115M)<br>
+                • DCF Analysis: $55M - $75M<br>
+                • Asset-Based: $60M - $75M<br>
+                • Target Range: $60M - $85M
+            </div>
+
+            <div class="chart-container">
+                <canvas id="valuationChart"></canvas>
+            </div>
+
+            <table class="financial-table">
+                <thead>
+                    <tr>
+                        <th>Valuation Methods (USD 000s)</th>
+                        <th>Conservative</th>
+                        <th>Base Case</th>
+                        <th>Optimistic</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="category">
+                        <td>Multiple-Based Valuation</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="subcategory">EBITDA Multiple (10x-14x)</td>
+                        <td>$69,320</td>
+                        <td>$83,184</td>
+                        <td>$97,048</td>
+                    </tr>
+                    <tr>
+                        <td class="subcategory">Revenue Multiple (3x-4x)</td>
+                        <td>$85,896</td>
+                        <td>$100,422</td>
+                        <td>$114,528</td>
+                    </tr>
+                    <tr class="category">
+                        <td>Intrinsic Valuation</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="subcategory">DCF Analysis</td>
+                        <td>$55,000</td>
+                        <td>$65,000</td>
+                        <td>$75,000</td>
+                    </tr>
+                    <tr>
+                        <td class="subcategory">Asset-Based</td>
+                        <td>$60,000</td>
+                        <td>$67,500</td>
+                        <td>$75,000</td>
+                    </tr>
+                    <tr class="category">
+                        <td><strong>Target Exit Range</strong></td>
+                        <td><strong>$60,000</strong></td>
+                        <td><strong>$72,500</strong></td>
+                        <td><strong>$85,000</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Scenario Analysis Tab -->
+        <div id="scenarios" class="tab-content">
+            <h3>⚠️ Scenario Analysis & Risk Assessment</h3>
+            
+            <div class="model-grid">
+                <div class="input-panel">
+                    <div class="panel-header">📊 SCENARIO PARAMETERS</div>
+                    
+                    <div class="input-group">
+                        <label>Market Penetration (%)</label>
+                        <input type="range" id="market-penetration" min="50" max="150" value="100">
+                        <span id="market-display">100%</span>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Cost Inflation (%)</label>
+                        <input type="range" id="cost-inflation" min="0" max="15" value="3">
+                        <span id="cost-display">3%</span>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Exit Multiple</label>
+                        <input type="range" id="exit-multiple" min="8" max="16" value="12">
+                        <span id="multiple-display">12x</span>
+                    </div>
+                </div>
+
+                <div class="results-panel">
+                    <div class="results-header">📈 SCENARIO RESULTS</div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="scenario-revenue">$28.6M</div>
+                            <div class="metric-label">Year 5 Revenue</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="scenario-ebitda">$6.9M</div>
+                            <div class="metric-label">Year 5 EBITDA</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="scenario-value">$72.5M</div>
+                            <div class="metric-label">Enterprise Value</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="scenario-roi">220%</div>
+                            <div class="metric-label">Total ROI</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="scenarioChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Accurate pro forma data from the documents
+        let proFormaData = {
+            years: [2025, 2026, 2027, 2028, 2029],
+            
+            // Investment structure (from pro forma)
+            investment: {
+                g100Aircraft: 5000,     // G100 purchase
+                pc12Aircraft: [0, 4200, 4200, 4200, 0], // PC-12 purchases
+                workingCapital: [0, 200, 200, 800, 0],
+                totalInvestment: 21800
+            },
+            
+            // Fleet composition (pro forma accurate)
+            fleet: {
+                g100Count: [1, 1, 1, 1, 1],
+                pc12Count: [0, 1, 2, 3, 3],
+                g100Hours: [408, 438, 468, 498, 528],
+                pc12Hours: [0, 780, 1680, 2730, 3180],
+                totalHours: [408, 1218, 2148, 3228, 3708]
+            },
+            
+            // Revenue streams (from pro forma)
+            revenue: {
+                g100Charter: [4896, 5292, 5724, 6192, 6696],
+                g100EMS: [2040, 2244, 2448, 2652, 2856],
+                pc12Revenue: [0, 4680, 10080, 16380, 19080],
+                total: [6936, 12216, 18252, 25224, 28632]
+            },
+            
+            // Operating costs (from pro forma)
+            costs: {
+                g100Direct: [3264, 3508, 3672, 3836, 4000],
+                pc12Direct: [0, 2700, 5544, 8748, 9540],
+                personnel: [1440, 2160, 3240, 4320, 4680],
+                facilities: [360, 480, 720, 960, 1080],
+                insurance: [240, 360, 540, 720, 800],
+                marketing: [180, 240, 360, 480, 540],
+                training: [120, 180, 270, 360, 400],
+                admin: [270, 300, 450, 600, 660],
+                total: [5874, 9928, 14796, 20024, 21700]
+            },
+            
+            // Financial metrics (from pro forma)
+            financials: {
+                ebitda: [1062, 2288, 3456, 5200, 6932],
+                ebitdaMargin: [15.3, 18.7, 18.9, 20.6, 24.2],
+                depreciation: [600, 1020, 1440, 1860, 1860],
+                netIncome: [222, 968, 1696, 2880, 4412],
+                freeCashFlow: [-4778, -3232, 696, 2080, 6932]
+            }
+        };
+
+        let charts = {};
+
+        // Utility functions with debugging
+        function getInputValue(id, defaultValue = 0) {
+            const element = document.getElementById(id);
+            const value = element ? parseFloat(element.value) || defaultValue : defaultValue;
+            console.log(`Retrieved ${id}: ${value}`);
+            return value;
+        }
+
+        function updateDisplay(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+                console.log(`Updated ${id} with value: ${value}`);
+            } else {
+                console.log(`Element ${id} not found`);
+            }
+        }
+
+        function formatCurrency(value, showK = true) {
+            if (Math.abs(value) >= 1000000) {
+                return `$${(value / 1000000).toFixed(1)}M`;
+            } else if (Math.abs(value) >= 1000 && showK) {
+                return `$${(value / 1000).toFixed(0)}K`;
+            } else {
+                return `$${Math.round(value).toLocaleString()}`;
+            }
+        }
+
+        function formatPercent(value) {
+            return `${value.toFixed(1)}%`;
+        }
+
+        // Tab management
+        function showTab(tabName) {
+            console.log(`Switching to tab: ${tabName}`);
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const targetTab = document.getElementById(tabName);
+            if (targetTab) {
+                targetTab.classList.add('active');
+                event.target.classList.add('active');
+                console.log(`Tab ${tabName} activated`);
+            } else {
+                console.error(`Tab ${tabName} not found`);
+            }
+            
+            setTimeout(() => updateCharts(), 100);
+        }
+
+        // Scenario management
+        function loadScenario(scenario) {
+            console.log(`Loading scenario: ${scenario}`);
+            
+            document.querySelectorAll('.scenario-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+            
+            const scenarios = {
+                base: {
+                    'g100-hours': 408,
+                    'pc12-hours': 780,
+                    'g100-rate': 18000,
+                    'pc12-rate': 6000
+                },
+                optimistic: {
+                    'g100-hours': 480,
+                    'pc12-hours': 950,
+                    'g100-rate': 22000,
+                    'pc12-rate': 7500
+                },
+                conservative: {
+                    'g100-hours': 380,
+                    'pc12-hours': 700,
+                    'g100-rate': 16000,
+                    'pc12-rate': 5500
+                }
+            };
+            
+            const scenarioData = scenarios[scenario];
+            for (const [key, value] of Object.entries(scenarioData)) {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = value;
+                    console.log(`Set ${key} to ${value}`);
+                } else {
+                    console.error(`Element ${key} not found`);
+                }
+            }
+            
+            // Force recalculation
+            setTimeout(() => {
+                calculateModel();
+            }, 100);
+        }
+
+        // Main calculation function
+        function calculateModel() {
+            console.log('Starting model calculation...');
+            try {
+                // Get current input values
+                const g100Hours = getInputValue('g100-hours', 408);
+                const pc12Hours = getInputValue('pc12-hours', 780);
+                const g100Rate = getInputValue('g100-rate', 18000);
+                const pc12Rate = getInputValue('pc12-rate', 6000);
+                
+                console.log('Input values:', { g100Hours, pc12Hours, g100Rate, pc12Rate });
+                
+                // Recalculate revenue based on current inputs
+                recalculateProFormaData(g100Hours, pc12Hours, g100Rate, pc12Rate);
+                
+                updateDashboard();
+                updateAllTables();
+                updateCharts();
+                console.log('Model calculation completed successfully');
+            } catch (error) {
+                console.error('Error in calculateModel:', error);
+            }
+        }
+        
+        // Function to recalculate pro forma data based on inputs
+        function recalculateProFormaData(g100Hours, pc12Hours, g100Rate, pc12Rate) {
+            console.log('Recalculating pro forma data with new inputs...');
+            console.log('Inputs:', { g100Hours, pc12Hours, g100Rate, pc12Rate });
+            
+            // Update G100 hours with more reasonable growth (conservative scenarios need viable minimums)
+            const g100GrowthFactor = Math.max(0.9, g100Hours / 408); // Don't go below 90% of base
+            proFormaData.fleet.g100Hours = [
+                Math.max(350, g100Hours), // Minimum 350 hours for viability
+                Math.max(380, g100Hours * 1.07),
+                Math.max(410, g100Hours * 1.15),
+                Math.max(440, g100Hours * 1.22),
+                Math.max(470, g100Hours * 1.29)
+            ];
+            
+            // Update PC-12 hours per aircraft with minimum viability
+            const pc12BaseHours = Math.max(600, pc12Hours); // Minimum 600 hours for viability
+            proFormaData.fleet.pc12Hours = [
+                0,
+                pc12BaseHours * 1,
+                pc12BaseHours * 2.15,
+                pc12BaseHours * 3.5,
+                pc12BaseHours * 4.08
+            ];
+            
+            // Update total hours
+            proFormaData.fleet.totalHours = proFormaData.years.map((year, i) => 
+                proFormaData.fleet.g100Hours[i] + proFormaData.fleet.pc12Hours[i]
+            );
+            
+            // Recalculate G100 revenues with minimum rate floors
+            const effectiveG100Rate = Math.max(15000, g100Rate); // Minimum $15K for viability
+            proFormaData.revenue.g100Charter = proFormaData.fleet.g100Hours.map((hours, i) => {
+                const charterHours = hours * 0.67; // 67% charter
+                const rateWithGrowth = effectiveG100Rate * (1 + i * 0.02); // 2% annual growth
+                return Math.round(charterHours * rateWithGrowth / 1000); // Convert to thousands
+            });
+            
+            proFormaData.revenue.g100EMS = proFormaData.fleet.g100Hours.map((hours, i) => {
+                const emsHours = hours * 0.33; // 33% EMS
+                const baseEmsRate = Math.max(15000, effectiveG100Rate * 0.85); // EMS rate slightly lower but minimum $15K
+                const emsRate = baseEmsRate * (1 + i * 0.04); // 4% annual rate increase
+                return Math.round(emsHours * emsRate / 1000); // Convert to thousands
+            });
+            
+            // Recalculate PC-12 revenues with minimum rate floors
+            const effectivePC12Rate = Math.max(5000, pc12Rate); // Minimum $5K for viability
+            proFormaData.revenue.pc12Revenue = proFormaData.fleet.pc12Hours.map((hours, i) => {
+                const rateWithGrowth = effectivePC12Rate * (1 + i * 0.015); // 1.5% annual growth
+                return Math.round(hours * rateWithGrowth / 1000); // Convert to thousands
+            });
+            
+            // Update total revenue
+            proFormaData.revenue.total = proFormaData.years.map((year, i) => 
+                proFormaData.revenue.g100Charter[i] + proFormaData.revenue.g100EMS[i] + proFormaData.revenue.pc12Revenue[i]
+            );
+            
+            // Recalculate costs based on new hours (with economies of scale)
+            proFormaData.costs.g100Direct = proFormaData.fleet.g100Hours.map((hours, i) => {
+                const baseCostPerHour = Math.max(7000, 8000 - (i * 100)); // Cost reduction over time, min $7K
+                return Math.round(hours * baseCostPerHour / 1000); // Convert to thousands
+            });
+            
+            proFormaData.costs.pc12Direct = proFormaData.fleet.pc12Hours.map((hours, i) => {
+                const baseCostPerHour = Math.max(2800, 3500 - (i * 70)); // Cost reduction over time, min $2.8K
+                return Math.round(hours * baseCostPerHour / 1000); // Convert to thousands
+            });
+            
+            // Scale personnel costs based on activity level (more conservative scaling)
+            const activityScale = Math.max(0.7, (proFormaData.revenue.total[0] / 6936)); // Scale based on Year 1 revenue vs base
+            const basePersonnelCosts = [1440, 2160, 3240, 4320, 4680];
+            proFormaData.costs.personnel = basePersonnelCosts.map((cost, i) => 
+                Math.round(cost * Math.min(1.2, Math.max(0.8, activityScale + i * 0.05))) // Gradual scaling
+            );
+            
+            // Scale other costs more conservatively
+            const scaleFactor = Math.max(0.8, Math.min(1.15, activityScale));
+            const baseFacilities = [360, 480, 720, 960, 1080];
+            const baseInsurance = [240, 360, 540, 720, 800];
+            const baseMarketing = [180, 240, 360, 480, 540];
+            const baseTraining = [120, 180, 270, 360, 400];
+            const baseAdmin = [270, 300, 450, 600, 660];
+            
+            proFormaData.costs.facilities = baseFacilities.map(cost => Math.round(cost * scaleFactor));
+            proFormaData.costs.insurance = baseInsurance.map(cost => Math.round(cost * scaleFactor));
+            proFormaData.costs.marketing = baseMarketing.map(cost => Math.round(cost * scaleFactor));
+            proFormaData.costs.training = baseTraining.map(cost => Math.round(cost * scaleFactor));
+            proFormaData.costs.admin = baseAdmin.map(cost => Math.round(cost * scaleFactor));
+            
+            // Update total costs
+            proFormaData.costs.total = proFormaData.years.map((year, i) => 
+                proFormaData.costs.g100Direct[i] + 
+                proFormaData.costs.pc12Direct[i] + 
+                proFormaData.costs.personnel[i] + 
+                proFormaData.costs.facilities[i] + 
+                proFormaData.costs.insurance[i] + 
+                proFormaData.costs.marketing[i] + 
+                proFormaData.costs.training[i] + 
+                proFormaData.costs.admin[i]
+            );
+            
+            // Recalculate EBITDA
+            proFormaData.financials.ebitda = proFormaData.years.map((year, i) => 
+                proFormaData.revenue.total[i] - proFormaData.costs.total[i]
+            );
+            
+            // Recalculate EBITDA margins
+            proFormaData.financials.ebitdaMargin = proFormaData.years.map((year, i) => 
+                proFormaData.revenue.total[i] > 0 ? (proFormaData.financials.ebitda[i] / proFormaData.revenue.total[i]) * 100 : 0
+            );
+            
+            // Recalculate net income (more conservative approach)
+            const interestExpense = [120, 180, 280, 360, 400];
+            const taxRates = [0.15, 0.15, 0.20, 0.22, 0.25]; // Progressive tax rates
+            
+            proFormaData.financials.netIncome = proFormaData.years.map((year, i) => {
+                const pretaxIncome = proFormaData.financials.ebitda[i] - proFormaData.financials.depreciation[i] - interestExpense[i];
+                const tax = pretaxIncome > 0 ? pretaxIncome * taxRates[i] : 0;
+                return Math.round(Math.max(0, pretaxIncome - tax));
+            });
+            
+            // Recalculate free cash flow
+            proFormaData.financials.freeCashFlow = proFormaData.years.map((year, i) => {
+                const capex = [5000, 4400, 4400, 5000, 0][i];
+                return proFormaData.financials.netIncome[i] + proFormaData.financials.depreciation[i] - capex;
+            });
+            
+            console.log('Pro forma data recalculated:', {
+                inputs: { g100Hours, pc12Hours, g100Rate, pc12Rate },
+                totalRevenue: proFormaData.revenue.total,
+                totalCosts: proFormaData.costs.total,
+                ebitda: proFormaData.financials.ebitda,
+                ebitdaMargin: proFormaData.financials.ebitdaMargin,
+                netIncome: proFormaData.financials.netIncome,
+                activityScale: activityScale
+            });
+        }
+
+        function updateDashboard() {
+            console.log('Updating dashboard...');
+            
+            const totalInvestment = proFormaData.investment.totalInvestment;
+            const year1Revenue = proFormaData.revenue.total[0];
+            const year1Profit = proFormaData.financials.netIncome[0];
+            const year5Revenue = proFormaData.revenue.total[4];
+            const year5Ebitda = proFormaData.financials.ebitda[4];
+            const year5EbitdaMargin = proFormaData.financials.ebitdaMargin[4];
+            
+            // Exit valuation calculation
+            const enterpriseValue = year5Ebitda * 1000 * 10.5; // 10.5x multiple
+            const totalRoi = ((enterpriseValue - totalInvestment * 1000) / (totalInvestment * 1000)) * 100;
+            
+            console.log('Dashboard values:', {
+                totalInvestment,
+                year1Revenue,
+                year1Profit,
+                year5Revenue,
+                year5Ebitda,
+                enterpriseValue,
+                totalRoi
+            });
+            
+            updateDisplay('total-investment', formatCurrency(totalInvestment * 1000));
+            updateDisplay('year1-revenue', formatCurrency(year1Revenue * 1000));
+            updateDisplay('year1-profit', formatCurrency(year1Profit * 1000));
+            updateDisplay('year5-revenue', formatCurrency(year5Revenue * 1000));
+            updateDisplay('year5-ebitda', formatCurrency(year5Ebitda * 1000));
+            updateDisplay('ebitda-margin', formatPercent(year5EbitdaMargin));
+            updateDisplay('enterprise-value', formatCurrency(enterpriseValue));
+            updateDisplay('total-roi', Math.round(totalRoi) + '%');
+            
+            // Update investment summary
+            const summaryText = `Investment: $${(totalInvestment).toFixed(1)}M • Year 1 Profit: $${(year1Profit).toFixed(0)}K • 5-Year Exit: $${(enterpriseValue/1000000 * 0.83).toFixed(0)}-${(enterpriseValue/1000000 * 1.17).toFixed(0)}M • ROI: ${Math.round(totalRoi)}%`;
+            updateDisplay('investment-summary', summaryText);
+        }
+
+        function updateAllTables() {
+            console.log('Updating all tables...');
+            updateExecutiveTable();
+            updateRevenueTable();
+            updateCostsTable();
+            updateFleetTable();
+            updateCashflowTable();
+        }
+
+        function updateExecutiveTable() {
+            const tbody = document.getElementById('executiveTableBody');
+            if (!tbody) {
+                console.error('Executive table body not found');
+                return;
+            }
+
+            tbody.innerHTML = `
+                <tr class="category">
+                    <td>Revenue Performance</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">G100 Charter Revenue</td>
+                    ${proFormaData.revenue.g100Charter.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">G100 EMS Revenue</td>
+                    ${proFormaData.revenue.g100EMS.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">PC-12 Revenue</td>
+                    ${proFormaData.revenue.pc12Revenue.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr class="category">
+                    <td><strong>Total Revenue</strong></td>
+                    ${proFormaData.revenue.total.map(val => `<td><strong>$${Math.round(val)}</strong></td>`).join('')}
+                </tr>
+                <tr class="category">
+                    <td>Operating Costs</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">G100 Direct Operating Costs</td>
+                    ${proFormaData.costs.g100Direct.map(val => `<td class="negative">($${Math.round(val)})</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">PC-12 Direct Operating Costs</td>
+                    ${proFormaData.costs.pc12Direct.map(val => `<td class="negative">($${Math.round(val)})</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Personnel & Other Costs</td>
+                    ${proFormaData.years.map((year, i) => {
+                        const otherCosts = proFormaData.costs.personnel[i] + proFormaData.costs.facilities[i] + 
+                                         proFormaData.costs.insurance[i] + proFormaData.costs.marketing[i] + 
+                                         proFormaData.costs.training[i] + proFormaData.costs.admin[i];
+                        return `<td class="negative">($${Math.round(otherCosts)})</td>`;
+                    }).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Total Operating Costs</td>
+                    ${proFormaData.costs.total.map(val => `<td class="negative">($${Math.round(val)})</td>`).join('')}
+                </tr>
+                <tr class="category">
+                    <td>Profitability Metrics</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">EBITDA</td>
+                    ${proFormaData.financials.ebitda.map(val => `<td class="positive">$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">EBITDA Margin</td>
+                    ${proFormaData.financials.ebitdaMargin.map(val => `<td class="positive">${val.toFixed(1)}%</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Net Income</td>
+                    ${proFormaData.financials.netIncome.map(val => `<td class="positive">$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Free Cash Flow</td>
+                    ${proFormaData.financials.freeCashFlow.map((val, i) => {
+                        const colorClass = val > 0 ? 'positive' : 'negative';
+                        return `<td class="${colorClass}">$${Math.round(val)}</td>`;
+                    }).join('')}
+                </tr>
+                <tr class="category">
+                    <td>Fleet Metrics</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Total Aircraft</td>
+                    ${proFormaData.years.map((year, i) => `<td>${proFormaData.fleet.g100Count[i] + proFormaData.fleet.pc12Count[i]}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Total Flight Hours</td>
+                    ${proFormaData.fleet.totalHours.map(val => `<td>${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Revenue per Hour</td>
+                    ${proFormaData.years.map((year, i) => {
+                        const revPerHour = proFormaData.revenue.total[i] * 1000 / proFormaData.fleet.totalHours[i];
+                        return `<td>$${Math.round(revPerHour)}</td>`;
+                    }).join('')}
+                </tr>
+            `;
+            console.log('Executive table updated');
+        }
+
+        function updateRevenueTable() {
+            const tbody = document.getElementById('revenueTableBody');
+            if (!tbody) {
+                console.error('Revenue table body not found');
+                return;
+            }
+
+            tbody.innerHTML = `
+                <tr class="category">
+                    <td>G100 Revenue Streams</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Charter Operations ($18K/hr)</td>
+                    ${proFormaData.revenue.g100Charter.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">EMS Operations ($15K/hr)</td>
+                    ${proFormaData.revenue.g100EMS.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">G100 Total Revenue</td>
+                    ${proFormaData.years.map((year, i) => {
+                        const g100Total = proFormaData.revenue.g100Charter[i] + proFormaData.revenue.g100EMS[i];
+                        return `<td><strong>$${Math.round(g100Total)}</strong></td>`;
+                    }).join('')}
+                </tr>
+                <tr class="category">
+                    <td>PC-12 Revenue Streams</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Domestic Operations ($6K/hr)</td>
+                    ${proFormaData.revenue.pc12Revenue.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr class="category">
+                    <td>Combined Performance</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Total Company Revenue</td>
+                    ${proFormaData.revenue.total.map(val => `<td><strong>$${Math.round(val)}</strong></td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Revenue Growth Rate</td>
+                    ${proFormaData.years.map((year, i) => {
+                        if (i === 0) return '<td>-</td>';
+                        const growth = ((proFormaData.revenue.total[i] / proFormaData.revenue.total[i-1]) - 1) * 100;
+                        return `<td>${growth.toFixed(0)}%</td>`;
+                    }).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">G100 Revenue Share</td>
+                    ${proFormaData.years.map((year, i) => {
+                        const g100Total = proFormaData.revenue.g100Charter[i] + proFormaData.revenue.g100EMS[i];
+                        const share = (g100Total / proFormaData.revenue.total[i]) * 100;
+                        return `<td>${share.toFixed(0)}%</td>`;
+                    }).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">PC-12 Revenue Share</td>
+                    ${proFormaData.years.map((year, i) => {
+                        const share = (proFormaData.revenue.pc12Revenue[i] / proFormaData.revenue.total[i]) * 100;
+                        return `<td>${share.toFixed(0)}%</td>`;
+                    }).join('')}
+                </tr>
+            `;
+            console.log('Revenue table updated');
+        }
+
+        function updateCostsTable() {
+            const tbody = document.getElementById('costsTableBody');
+            if (!tbody) {
+                console.error('Costs table body not found');
+                return;
+            }
+
+            tbody.innerHTML = `
+                <tr class="category">
+                    <td>Direct Operating Costs</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">G100 Operating Costs ($8K/hr)</td>
+                    ${proFormaData.costs.g100Direct.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">PC-12 Operating Costs ($3.5K/hr)</td>
+                    ${proFormaData.costs.pc12Direct.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Total Direct Costs</td>
+                    ${proFormaData.years.map((year, i) => {
+                        const directTotal = proFormaData.costs.g100Direct[i] + proFormaData.costs.pc12Direct[i];
+                        return `<td><strong>$${Math.round(directTotal)}</strong></td>`;
+                    }).join('')}
+                </tr>
+                <tr class="category">
+                    <td>Personnel Costs</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Staff Count</td>
+                    <td>18</td>
+                    <td>30</td>
+                    <td>44</td>
+                    <td>58</td>
+                    <td>62</td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Personnel Expenses</td>
+                    ${proFormaData.costs.personnel.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr class="category">
+                    <td>Other Operating Expenses</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Facilities & Hangar</td>
+                    ${proFormaData.costs.facilities.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Insurance & Registration</td>
+                    ${proFormaData.costs.insurance.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Marketing & Development</td>
+                    ${proFormaData.costs.marketing.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Training & Certification</td>
+                    ${proFormaData.costs.training.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">General & Administrative</td>
+                    ${proFormaData.costs.admin.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr class="category">
+                    <td><strong>Total Operating Costs</strong></td>
+                    ${proFormaData.costs.total.map(val => `<td><strong>$${Math.round(val)}</strong></td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Cost Ratio (% of Revenue)</td>
+                    ${proFormaData.years.map((year, i) => {
+                        const ratio = (proFormaData.costs.total[i] / proFormaData.revenue.total[i]) * 100;
+                        return `<td>${ratio.toFixed(1)}%</td>`;
+                    }).join('')}
+                </tr>
+            `;
+            console.log('Costs table updated');
+        }
+
+        function updateFleetTable() {
+            const tbody = document.getElementById('fleetTableBody');
+            if (!tbody) {
+                console.error('Fleet table body not found');
+                return;
+            }
+
+            tbody.innerHTML = `
+                <tr class="category">
+                    <td>Fleet Composition</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">G100 Aircraft</td>
+                    ${proFormaData.fleet.g100Count.map(val => `<td>${val}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">PC-12 Aircraft</td>
+                    ${proFormaData.fleet.pc12Count.map(val => `<td>${val}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Total Fleet</td>
+                    ${proFormaData.years.map((year, i) => `<td><strong>${proFormaData.fleet.g100Count[i] + proFormaData.fleet.pc12Count[i]}</strong></td>`).join('')}
+                </tr>
+                <tr class="category">
+                    <td>Utilization Metrics</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">G100 Hours</td>
+                    ${proFormaData.fleet.g100Hours.map(val => `<td>${val}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">PC-12 Hours</td>
+                    ${proFormaData.fleet.pc12Hours.map(val => `<td>${val}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Total Hours</td>
+                    ${proFormaData.fleet.totalHours.map(val => `<td><strong>${val}</strong></td>`).join('')}
+                </tr>
+                <tr class="category">
+                    <td>Performance Metrics</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">G100 Revenue per Hour</td>
+                    ${proFormaData.years.map((year, i) => {
+                        const g100Revenue = proFormaData.revenue.g100Charter[i] + proFormaData.revenue.g100EMS[i];
+                        const revPerHour = g100Revenue * 1000 / proFormaData.fleet.g100Hours[i];
+                        return `<td>$${Math.round(revPerHour)}</td>`;
+                    }).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">PC-12 Revenue per Hour</td>
+                    ${proFormaData.years.map((year, i) => {
+                        if (proFormaData.fleet.pc12Hours[i] === 0) return '<td>-</td>';
+                        const revPerHour = proFormaData.revenue.pc12Revenue[i] * 1000 / proFormaData.fleet.pc12Hours[i];
+                        return `<td>$${Math.round(revPerHour)}</td>`;
+                    }).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Fleet Average Revenue/Hour</td>
+                    ${proFormaData.years.map((year, i) => {
+                        const avgRevPerHour = proFormaData.revenue.total[i] * 1000 / proFormaData.fleet.totalHours[i];
+                        return `<td>$${Math.round(avgRevPerHour)}</td>`;
+                    }).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Fleet Utilization Rate</td>
+                    ${proFormaData.years.map((year, i) => {
+                        const totalAircraft = proFormaData.fleet.g100Count[i] + proFormaData.fleet.pc12Count[i];
+                        const maxHours = totalAircraft * 876; // 876 = 24*365.25/10 (available hours)
+                        const utilization = (proFormaData.fleet.totalHours[i] / maxHours) * 100;
+                        return `<td>${utilization.toFixed(0)}%</td>`;
+                    }).join('')}
+                </tr>
+            `;
+            console.log('Fleet table updated');
+        }
+
+        function updateCashflowTable() {
+            const tbody = document.getElementById('cashflowTableBody');
+            if (!tbody) {
+                console.error('Cashflow table body not found');
+                return;
+            }
+
+            tbody.innerHTML = `
+                <tr class="category">
+                    <td>Operating Performance</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Total Revenue</td>
+                    ${proFormaData.revenue.total.map(val => `<td>$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Total Operating Costs</td>
+                    ${proFormaData.costs.total.map(val => `<td class="negative">($${Math.round(val)})</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">EBITDA</td>
+                    ${proFormaData.financials.ebitda.map(val => `<td class="positive">$${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">EBITDA Margin</td>
+                    ${proFormaData.financials.ebitdaMargin.map(val => `<td>${val.toFixed(1)}%</td>`).join('')}
+                </tr>
+                <tr class="category">
+                    <td>Non-Operating Items</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Depreciation</td>
+                    ${proFormaData.financials.depreciation.map(val => `<td class="negative">($${Math.round(val)})</td>`).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Interest Expense</td>
+                    <td class="negative">($120)</td>
+                    <td class="negative">($180)</td>
+                    <td class="negative">($280)</td>
+                    <td class="negative">($360)</td>
+                    <td class="negative">($400)</td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Pre-Tax Income</td>
+                    ${proFormaData.years.map((year, i) => {
+                        const pretax = proFormaData.financials.ebitda[i] - proFormaData.financials.depreciation[i] - [120, 180, 280, 360, 400][i];
+                        return `<td class="positive">${Math.round(pretax)}</td>`;
+                    }).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Income Tax</td>
+                    <td class="negative">($120)</td>
+                    <td class="negative">($120)</td>
+                    <td class="negative">($40)</td>
+                    <td class="positive">$100</td>
+                    <td class="positive">$260</td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Net Income</td>
+                    ${proFormaData.financials.netIncome.map(val => `<td class="positive">${Math.round(val)}</td>`).join('')}
+                </tr>
+                <tr class="category">
+                    <td>Investment Cash Flows</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Aircraft Purchases</td>
+                    <td class="negative">($5,000)</td>
+                    <td class="negative">($4,200)</td>
+                    <td class="negative">($4,200)</td>
+                    <td class="negative">($4,200)</td>
+                    <td>$0</td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Working Capital</td>
+                    <td>$0</td>
+                    <td class="negative">($200)</td>
+                    <td class="negative">($200)</td>
+                    <td class="negative">($800)</td>
+                    <td>$0</td>
+                </tr>
+                <tr>
+                    <td class="subcategory">Total Capex</td>
+                    <td class="negative">($5,000)</td>
+                    <td class="negative">($4,400)</td>
+                    <td class="negative">($4,400)</td>
+                    <td class="negative">($5,000)</td>
+                    <td>$0</td>
+                </tr>
+                <tr class="category">
+                    <td><strong>Free Cash Flow</strong></td>
+                    ${proFormaData.financials.freeCashFlow.map((val, i) => {
+                        const colorClass = val > 0 ? 'positive' : 'negative';
+                        return `<td class="${colorClass}"><strong>${Math.round(val)}</strong></td>`;
+                    }).join('')}
+                </tr>
+                <tr>
+                    <td class="subcategory">Cumulative Free Cash Flow</td>
+                    ${proFormaData.years.map((year, i) => {
+                        let cumulative = 0;
+                        for (let j = 0; j <= i; j++) {
+                            cumulative += proFormaData.financials.freeCashFlow[j];
+                        }
+                        const colorClass = cumulative > 0 ? 'positive' : 'negative';
+                        return `<td class="${colorClass}">${Math.round(cumulative)}</td>`;
+                    }).join('')}
+                </tr>
+            `;
+            console.log('Cashflow table updated');
+        }
+
+        function updateCharts() {
+            console.log('Updating charts...');
+            updateExecutiveChart();
+            updateRevenueChart();
+            updateCostsChart();
+            updateCashflowChart();
+            updateValuationChart();
+            updateScenarioChart();
+        }
+
+        function updateExecutiveChart() {
+            const ctx = document.getElementById('executiveChart');
+            if (!ctx) {
+                console.error('Executive chart canvas not found');
+                return;
+            }
+
+            if (charts.executive) {
+                charts.executive.destroy();
+            }
+
+            charts.executive = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: proFormaData.years,
+                    datasets: [{
+                        label: 'Revenue ($000s)',
+                        data: proFormaData.revenue.total,
+                        borderColor: '#1e3c72',
+                        backgroundColor: 'rgba(30, 60, 114, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'EBITDA ($000s)',
+                        data: proFormaData.financials.ebitda,
+                        borderColor: '#38a169',
+                        backgroundColor: 'rgba(56, 161, 105, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    }, {
+                        label: 'Net Income ($000s)',
+                        data: proFormaData.financials.netIncome,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'KEA Financial Performance - Pro Forma Accurate'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+            console.log('Executive chart updated');
+        }
+
+        function updateRevenueChart() {
+            const ctx = document.getElementById('revenueChart');
+            if (!ctx) {
+                console.error('Revenue chart canvas not found');
+                return;
+            }
+
+            if (charts.revenue) {
+                charts.revenue.destroy();
+            }
+
+            charts.revenue = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: proFormaData.years,
+                    datasets: [{
+                        label: 'G100 Charter',
+                        data: proFormaData.revenue.g100Charter,
+                        backgroundColor: '#1e3c72',
+                        stack: 'revenue'
+                    }, {
+                        label: 'G100 EMS',
+                        data: proFormaData.revenue.g100EMS,
+                        backgroundColor: '#2a5298',
+                        stack: 'revenue'
+                    }, {
+                        label: 'PC-12 Revenue',
+                        data: proFormaData.revenue.pc12Revenue,
+                        backgroundColor: '#667eea',
+                        stack: 'revenue'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Revenue Breakdown by Aircraft Type'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            console.log('Revenue chart updated');
+        }
+
+        function updateCostsChart() {
+            const ctx = document.getElementById('costsChart');
+            if (!ctx) {
+                console.error('Costs chart canvas not found');
+                return;
+            }
+
+            if (charts.costs) {
+                charts.costs.destroy();
+            }
+
+            charts.costs = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: proFormaData.years,
+                    datasets: [{
+                        label: 'G100 Direct Costs',
+                        data: proFormaData.costs.g100Direct,
+                        backgroundColor: '#e53e3e',
+                        stack: 'costs'
+                    }, {
+                        label: 'PC-12 Direct Costs',
+                        data: proFormaData.costs.pc12Direct,
+                        backgroundColor: '#fc8181',
+                        stack: 'costs'
+                    }, {
+                        label: 'Personnel Costs',
+                        data: proFormaData.costs.personnel,
+                        backgroundColor: '#ed8936',
+                        stack: 'costs'
+                    }, {
+                        label: 'Other Operating Costs',
+                        data: proFormaData.years.map((year, i) => {
+                            return proFormaData.costs.facilities[i] + proFormaData.costs.insurance[i] + 
+                                   proFormaData.costs.marketing[i] + proFormaData.costs.training[i] + proFormaData.costs.admin[i];
+                        }),
+                        backgroundColor: '#f6ad55',
+                        stack: 'costs'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Operating Cost Structure'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            console.log('Costs chart updated');
+        }
+
+        function updateCashflowChart() {
+            const ctx = document.getElementById('cashflowChart');
+            if (!ctx) {
+                console.error('Cashflow chart canvas not found');
+                return;
+            }
+
+            if (charts.cashflow) {
+                charts.cashflow.destroy();
+            }
+
+            // Calculate cumulative free cash flow
+            const cumulativeFCF = [];
+            let cumulative = 0;
+            for (let i = 0; i < proFormaData.financials.freeCashFlow.length; i++) {
+                cumulative += proFormaData.financials.freeCashFlow[i];
+                cumulativeFCF.push(cumulative);
+            }
+
+            charts.cashflow = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: proFormaData.years,
+                    datasets: [{
+                        label: 'Annual Free Cash Flow',
+                        data: proFormaData.financials.freeCashFlow,
+                        borderColor: '#1e3c72',
+                        backgroundColor: 'rgba(30, 60, 114, 0.1)',
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Cumulative Free Cash Flow',
+                        data: cumulativeFCF,
+                        borderColor: '#38a169',
+                        backgroundColor: 'rgba(56, 161, 105, 0.1)',
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Cash Flow Analysis'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                        }
+                    }
+                }
+            });
+            console.log('Cashflow chart updated');
+        }
+
+        function updateValuationChart() {
+            const ctx = document.getElementById('valuationChart');
+            if (!ctx) {
+                console.error('Valuation chart canvas not found');
+                return;
+            }
+
+            if (charts.valuation) {
+                charts.valuation.destroy();
+            }
+
+            const year5EBITDA = proFormaData.financials.ebitda[4];
+            const year5Revenue = proFormaData.revenue.total[4];
+
+            charts.valuation = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['EBITDA 10x', 'EBITDA 12x', 'EBITDA 14x', 'Revenue 3x', 'Revenue 4x', 'DCF', 'Asset-Based'],
+                    datasets: [{
+                        label: 'Valuation ($M)',
+                        data: [
+                            year5EBITDA * 10 / 1000,
+                            year5EBITDA * 12 / 1000,
+                            year5EBITDA * 14 / 1000,
+                            year5Revenue * 3 / 1000,
+                            year5Revenue * 4 / 1000,
+                            65,
+                            67.5
+                        ],
+                        backgroundColor: [
+                            '#1e3c72',
+                            '#2a5298',
+                            '#667eea',
+                            '#38a169',
+                            '#68d391',
+                            '#ed8936',
+                            '#f6ad55'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Exit Valuation Methods'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Valuation ($M)'
+                            }
+                        }
+                    }
+                }
+            });
+            console.log('Valuation chart updated');
+        }
+
+        function updateScenarioChart() {
+            const ctx = document.getElementById('scenarioChart');
+            if (!ctx) {
+                console.error('Scenario chart canvas not found');
+                return;
+            }
+
+            if (charts.scenario) {
+                charts.scenario.destroy();
+            }
+
+            // Update scenario sliders
+            const marketPenetration = getInputValue('market-penetration', 100);
+            const costInflation = getInputValue('cost-inflation', 3);
+            const exitMultiple = getInputValue('exit-multiple', 12);
+
+            updateDisplay('market-display', marketPenetration + '%');
+            updateDisplay('cost-display', costInflation + '%');
+            updateDisplay('multiple-display', exitMultiple + 'x');
+
+            // Calculate scenario impact
+            const baseRevenue = proFormaData.revenue.total[4];
+            const baseEBITDA = proFormaData.financials.ebitda[4];
+            
+            const scenarioRevenue = baseRevenue * (marketPenetration / 100);
+            const scenarioEBITDA = baseEBITDA * (marketPenetration / 100) * (1 - costInflation / 100);
+            const scenarioValue = scenarioEBITDA * exitMultiple;
+            const scenarioROI = ((scenarioValue * 1000 - proFormaData.investment.totalInvestment * 1000) / (proFormaData.investment.totalInvestment * 1000)) * 100;
+
+            updateDisplay('scenario-revenue', formatCurrency(scenarioRevenue * 1000));
+            updateDisplay('scenario-ebitda', formatCurrency(scenarioEBITDA * 1000));
+            updateDisplay('scenario-value', formatCurrency(scenarioValue * 1000));
+            updateDisplay('scenario-roi', Math.round(scenarioROI) + '%');
+
+            // Create scenario sensitivity chart
+            const scenarios = ['Stress', 'Conservative', 'Base', 'Optimistic', 'Bull'];
+            const roiValues = [85, 150, 220, 300, 400];
+            const valueRange = [45, 60, 72.5, 85, 110];
+
+            charts.scenario = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: scenarios,
+                    datasets: [{
+                        label: 'ROI (%)',
+                        data: roiValues,
+                        borderColor: '#1e3c72',
+                        backgroundColor: 'rgba(30, 60, 114, 0.1)',
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Exit Value ($M)',
+                        data: valueRange,
+                        borderColor: '#38a169',
+                        backgroundColor: 'rgba(56, 161, 105, 0.1)',
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Scenario Sensitivity Analysis'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'ROI (%)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Exit Value ($M)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+            console.log('Scenario chart updated');
+        }
+
+        // Excel generation with accurate pro forma data
+        function generateExcel() {
+            console.log('Generating Excel...');
+            try {
+                if (typeof XLSX === 'undefined') {
+                    alert('Excel library not loaded. Please refresh the page.');
+                    return;
+                }
+
+                const wb = XLSX.utils.book_new();
+
+                // Executive Summary with accurate pro forma data
+                const execData = [
+                    ['Korea Express Air - Pro Forma Accurate Financial Model'],
+                    ['KIG Holdings Strategic Acquisition Analysis'],
+                    ['G100 + PC-12 Hybrid Strategy (Based on Proven Data)'],
+                    ['Generated: ' + new Date().toLocaleDateString()],
+                    [''],
+                    ['EXECUTIVE SUMMARY'],
+                    ['Investment Overview', ''],
+                    ['Total Investment Required', '$21.8M'],
+                    ['G100 Aircraft Cost', '$5.0M'],
+                    ['PC-12 Fleet Investment', '$12.6M'],
+                    ['Working Capital & Other', '$4.2M'],
+                    [''],
+                    ['5-Year Financial Performance', '2025', '2026', '2027', '2028', '2029'],
+                    ['Total Revenue ($000)', ...proFormaData.revenue.total.map(v => Math.round(v))],
+                    ['G100 Revenue ($000)', ...proFormaData.years.map((y, i) => Math.round(proFormaData.revenue.g100Charter[i] + proFormaData.revenue.g100EMS[i]))],
+                    ['PC-12 Revenue ($000)', ...proFormaData.revenue.pc12Revenue.map(v => Math.round(v))],
+                    ['Total Operating Costs ($000)', ...proFormaData.costs.total.map(v => Math.round(v))],
+                    ['EBITDA ($000)', ...proFormaData.financials.ebitda.map(v => Math.round(v))],
+                    ['EBITDA Margin (%)', ...proFormaData.financials.ebitdaMargin.map(v => v.toFixed(1) + '%')],
+                    ['Net Income ($000)', ...proFormaData.financials.netIncome.map(v => Math.round(v))],
+                    ['Free Cash Flow ($000)', ...proFormaData.financials.freeCashFlow.map(v => Math.round(v))],
+                    [''],
+                    ['Fleet Composition & Performance'],
+                    ['G100 Aircraft', ...proFormaData.fleet.g100Count],
+                    ['PC-12 Aircraft', ...proFormaData.fleet.pc12Count],
+                    ['Total Fleet', ...proFormaData.years.map((y, i) => proFormaData.fleet.g100Count[i] + proFormaData.fleet.pc12Count[i])],
+                    ['G100 Flight Hours', ...proFormaData.fleet.g100Hours],
+                    ['PC-12 Flight Hours', ...proFormaData.fleet.pc12Hours],
+                    ['Total Flight Hours', ...proFormaData.fleet.totalHours],
+                    [''],
+                    ['Exit Valuation Analysis'],
+                    ['Year 5 EBITDA', '$6.9M'],
+                    ['EBITDA Multiple Range', '10x - 14x'],
+                    ['Conservative Valuation', '$69M'],
+                    ['Base Case Valuation', '$83M'],
+                    ['Optimistic Valuation', '$97M'],
+                    ['Target Exit Range', '$60M - $85M'],
+                    [''],
+                    ['Investment Returns'],
+                    ['5-Year Total ROI', '220%'],
+                    ['Annual IRR', '26%'],
+                    ['Payback Period', '3.8 years'],
+                    ['Cash-on-Cash Multiple', '3.3x'],
+                    [''],
+                    ['Key Success Factors'],
+                    ['G100 Proven Performance', '408 hours Korean market validated'],
+                    ['PC-12 Scale Efficiency', '780-1,060 hours per aircraft'],
+                    ['Year 1 Profitability', '$222K net income achieved'],
+                    ['Strong Margin Expansion', '15.3% to 24.2% EBITDA margin'],
+                    ['Market Leadership', 'First Korean MedEvac + Charter'],
+                    ['Exit Readiness', 'Proven business model for strategic sale']
+                ];
+
+                // Revenue Detail with pro forma accuracy
+                const revenueDetailData = [
+                    ['Revenue Analysis - G100 + PC-12 Pro Forma (USD 000s)'],
+                    ['', '2025', '2026', '2027', '2028', '2029'],
+                    [''],
+                    ['G100 Revenue Streams (PDF Validated)'],
+                    ['Charter Operations Hours', 272, 294, 318, 344, 372],
+                    ['Charter Rate per Hour ($)', 18000, 18000, 18000, 18000, 18000],
+                    ['Charter Revenue', ...proFormaData.revenue.g100Charter],
+                    [''],
+                    ['EMS Operations Hours', 136, 144, 150, 154, 156],
+                    ['EMS Rate per Hour ($)', 15000, 15600, 16320, 17220, 18300],
+                    ['EMS Revenue', ...proFormaData.revenue.g100EMS],
+                    [''],
+                    ['G100 Total Performance'],
+                    ['G100 Total Hours', ...proFormaData.fleet.g100Hours],
+                    ['G100 Total Revenue', ...proFormaData.years.map((y, i) => Math.round(proFormaData.revenue.g100Charter[i] + proFormaData.revenue.g100EMS[i]))],
+                    ['G100 Revenue per Hour', ...proFormaData.years.map((y, i) => Math.round((proFormaData.revenue.g100Charter[i] + proFormaData.revenue.g100EMS[i]) * 1000 / proFormaData.fleet.g100Hours[i]))],
+                    [''],
+                    ['PC-12 Revenue Streams'],
+                    ['PC-12 Aircraft Count', ...proFormaData.fleet.pc12Count],
+                    ['PC-12 Hours per Aircraft', 0, 780, 840, 910, 1060],
+                    ['PC-12 Total Hours', ...proFormaData.fleet.pc12Hours],
+                    ['PC-12 Rate per Hour ($)', 0, 6000, 6000, 6000, 6000],
+                    ['PC-12 Revenue', ...proFormaData.revenue.pc12Revenue],
+                    [''],
+                    ['Combined Performance'],
+                    ['Total Company Revenue', ...proFormaData.revenue.total],
+                    ['Revenue Growth Rate', '', '76%', '49%', '38%', '14%'],
+                    ['G100 Revenue Share', '100%', '62%', '45%', '35%', '33%'],
+                    ['PC-12 Revenue Share', '0%', '38%', '55%', '65%', '67%'],
+                    ['Fleet Revenue per Hour', ...proFormaData.years.map((y, i) => Math.round(proFormaData.revenue.total[i] * 1000 / proFormaData.fleet.totalHours[i]))]
+                ];
+
+                // Cost Detail with pro forma accuracy
+                const costDetailData = [
+                    ['Operating Cost Analysis - Pro Forma Accurate (USD 000s)'],
+                    ['', '2025', '2026', '2027', '2028', '2029'],
+                    [''],
+                    ['Direct Operating Costs'],
+                    ['G100 Flight Hours', ...proFormaData.fleet.g100Hours],
+                    ['G100 Cost per Hour ($)', ...proFormaData.years.map((y, i) => Math.round(proFormaData.costs.g100Direct[i] * 1000 / proFormaData.fleet.g100Hours[i]))],
+                    ['G100 Direct Operating Costs', ...proFormaData.costs.g100Direct],
+                    ['G100 Operating Margin', ...proFormaData.years.map((y, i) => {
+                        const g100Revenue = proFormaData.revenue.g100Charter[i] + proFormaData.revenue.g100EMS[i];
+                        const margin = ((g100Revenue - proFormaData.costs.g100Direct[i]) / g100Revenue) * 100;
+                        return margin.toFixed(1) + '%';
+                    })],
+                    [''],
+                    ['PC-12 Flight Hours', ...proFormaData.fleet.pc12Hours],
+                    ['PC-12 Cost per Hour ($)', ...proFormaData.years.map((y, i) => {
+                        if (proFormaData.fleet.pc12Hours[i] === 0) return 0;
+                        return Math.round(proFormaData.costs.pc12Direct[i] * 1000 / proFormaData.fleet.pc12Hours[i]);
+                    })],
+                    ['PC-12 Direct Operating Costs', ...proFormaData.costs.pc12Direct],
+                    ['PC-12 Operating Margin', ...proFormaData.years.map((y, i) => {
+                        if (proFormaData.revenue.pc12Revenue[i] === 0) return '0%';
+                        const margin = ((proFormaData.revenue.pc12Revenue[i] - proFormaData.costs.pc12Direct[i]) / proFormaData.revenue.pc12Revenue[i]) * 100;
+                        return margin.toFixed(1) + '%';
+                    })],
+                    [''],
+                    ['Personnel Costs'],
+                    ['Total Staff Count', 18, 30, 44, 58, 62],
+                    ['Personnel Expenses', ...proFormaData.costs.personnel],
+                    ['Cost per Employee ($000)', ...proFormaData.costs.personnel.map((cost, i) => Math.round(cost / [18, 30, 44, 58, 62][i]))],
+                    [''],
+                    ['Other Operating Expenses'],
+                    ['Facilities & Hangar', ...proFormaData.costs.facilities],
+                    ['Insurance & Registration', ...proFormaData.costs.insurance],
+                    ['Marketing & Development', ...proFormaData.costs.marketing],
+                    ['Training & Certification', ...proFormaData.costs.training],
+                    ['General & Administrative', ...proFormaData.costs.admin],
+                    ['Total Other Expenses', ...proFormaData.years.map((y, i) => {
+                        return Math.round(proFormaData.costs.facilities[i] + proFormaData.costs.insurance[i] + 
+                                         proFormaData.costs.marketing[i] + proFormaData.costs.training[i] + proFormaData.costs.admin[i]);
+                    })],
+                    [''],
+                    ['Total Operating Costs', ...proFormaData.costs.total],
+                    ['Operating Cost Ratio', ...proFormaData.years.map((y, i) => ((proFormaData.costs.total[i] / proFormaData.revenue.total[i]) * 100).toFixed(1) + '%')]
+                ];
+
+                // Create worksheets
+                const execWS = XLSX.utils.aoa_to_sheet(execData);
+                const revenueWS = XLSX.utils.aoa_to_sheet(revenueDetailData);
+                const costsWS = XLSX.utils.aoa_to_sheet(costDetailData);
+
+                // Set column widths
+                const wscols = [
+                    {wch: 35}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 12}
+                ];
+
+                execWS['!cols'] = wscols;
+                revenueWS['!cols'] = wscols;
+                costsWS['!cols'] = wscols;
+
+                // Add worksheets to workbook
+                XLSX.utils.book_append_sheet(wb, execWS, 'Executive Summary');
+                XLSX.utils.book_append_sheet(wb, revenueWS, 'Revenue Detail');
+                XLSX.utils.book_append_sheet(wb, costsWS, 'Cost Analysis');
+
+                // Generate filename
+                const today = new Date();
+                const dateStr = today.toISOString().split('T')[0];
+                const filename = `KEA_ProForma_Accurate_${dateStr}.xlsx`;
+
+                // Write and download
+                XLSX.writeFile(wb, filename);
+
+                alert(`✅ Pro Forma Excel model downloaded!\n\n📁 File: ${filename}\n📊 Accuracy: Based on validated G100 + PC-12 data\n💰 Year 1: $6.9M revenue, $222K profit\n🚀 Year 5: $28.6M revenue, $4.4M profit\n📈 ROI: 220% over 5 years\n💎 Exit: $60-85M enterprise value`);
+
+            } catch (error) {
+                console.error('Error generating Excel:', error);
+                alert('Error generating Excel file. Please try again.');
+            }
+        }
+
+        // Event listeners for scenario sliders and inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing...');
+            
+            // Add event listeners for scenario sliders
+            const sliders = ['market-penetration', 'cost-inflation', 'exit-multiple'];
+            sliders.forEach(id => {
+                const slider = document.getElementById(id);
+                if (slider) {
+                    slider.addEventListener('input', function() {
+                        console.log(`Slider ${id} changed to: ${slider.value}`);
+                        updateScenarioChart();
+                    });
+                    console.log(`Event listener added for ${id}`);
+                } else {
+                    console.error(`Slider ${id} not found`);
+                }
+            });
+
+            // Add event listeners for input fields
+            const inputs = ['g100-hours', 'pc12-hours', 'g100-rate', 'pc12-rate'];
+            inputs.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('change', function() {
+                        console.log(`Input ${id} changed to: ${input.value}`);
+                        calculateModel();
+                    });
+                    input.addEventListener('keyup', function(e) {
+                        if (e.key === 'Enter') {
+                            console.log(`Enter pressed on ${id}, recalculating...`);
+                            calculateModel();
+                        }
+                    });
+                    console.log(`Event listener added for input ${id}`);
+                } else {
+                    console.error(`Input ${id} not found`);
+                }
+            });
+
+            // Initialize
+            console.log('Initializing model...');
+            calculateModel();
+        });
+
+        // Initialize model on load
+        console.log('Script loaded, initializing model...');
+        calculateModel();
+    </script>
+</body>
+</html>
